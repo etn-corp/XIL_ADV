@@ -1,0 +1,15 @@
+startTest = 1;
+
+while (startTest) {
+	if (signalConvert(ECU.AMTCurrentGear) == 2 && signalConvert(ECU.AMTShiftState) == 4) {
+		ECU.SetParameterPhysValue ("TC_OpsBatteryVoltage_mV", 15000) &&
+		ECU.SetParameterPhysValue ("TO_OpsBatteryVoltage_mV", 1);
+		break;
+	startTest = 0;
+	}
+}
+
+/*
+ * TC_OpsBatteryVoltage_mV
+ * TO_OpsBatteryVoltage_mV
+ */
