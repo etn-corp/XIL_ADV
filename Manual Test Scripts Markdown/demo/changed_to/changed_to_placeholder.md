@@ -1,0 +1,17 @@
+| Test case name | Description |
+|---|---|
+| changed_to_placeholder | The system shall use different clutch modes for vehicle launch and for shift launch and limit torque tranfer rate accordingly<br><br>Simulink path for tested logic:<br><br>PTMgrDesignECU/3 PowerTrain Manager/3.4 Clutch Management/3.4.4 Clutch Command/3.4.4.2 Rate Limit<br><br>PTMgrDesignECU/3 PowerTrain Manager/3.4 Clutch Management/3.4.1 Clutch Mode/3.4.1.4 Shift Launch or Vehicle Launch |
+
+| Step | Action | Expected result |
+|---:|---|---|
+| 1 | Collect the following<br><br>XCP with 10 ms cyclic:<br><br>OprFootOnBrakePedal<br>OprFootOnAccelPedal<br>OprPRNDLSelect<br>OprPRNDL<br>AMTCurrentGear<br>AMTSelectedGear<br>AMTShiftState<br>EngineSpeed<br>VehSpeed<br><br>PtmCluBelowLockThd<br>PtmCluAboveLockThd<br>PtmCluShiftLaunch<br>PtmCluVehicleLaunch<br>TrnInputShaftControlMode<br>AMTNeutralConfirmed<br>rtDWork.engine_torque_cmd<br>PtmCluEngineNeeded<br>PtmCluLocking<br>PtmCluLocked<br>PtmCluUnlock<br>CluLocked<br>PtmClutchMode<br>PtmCluRRate<br>CluPosition<br>CluPositionCmd<br>CluPositionCmdActive<br>CluEngageFraction<br>CluEngageFractionCmd<br>AMTInputShaftSpeed<br>AMTOutputShaftSpeed<br>CluInputShaftSpeed<br>CluOutputShaftSpeed | . |
+| 2 | SET TE.Battery = 24000 (mV)<br>SET TE.Ignition = 24000 (mV)<br>SET VEH.Engine = ON<br><br>#Summary:<br>1. Set battery power and ignition to 24V, then start engine | . |
+| 3 | Start recording | . |
+| 4 | SET VEH.ParkingBrake = OFF<br>SET VEH.ServiceBrake = ON<br>SET VEH.PRNDL = Drive (1)<br>VERIFY EXPECTED RESULTS<br><br>#Summary<br>1. Depress brake pedal. Release parking brake.<br>2. Select Drive mode. Confirm Drive mode is selected and start gear is engaged. | VERIFY J1939.ParkingBrakeSwitch = ParkingBrakeNotSet<br>VERIFY ECU.OprFootOnBrakePedal = 1<br>VERIFY ECU.OprPRNDL = 1<br>VERIFY ECU.AMTSelectedGear = 1<br>VERIFY ECU.AMTCurrentGear = 1 |
+| 5 | SET VEH.ServiceBrake = OFF<br>SET VEH.AccelPedal = ON<br>WAIT VEH.CurrentGear = 3<br>VERIFY EXPECTED RESULTS<br><br>#Summary<br>1. Release brake pedal.<br>2. Apply accelerator pedal.<br>3. Achieve 3rd gear. Keep driving fully engaged.<br><br>#Prerequisite<br>ECU.AMTSelectedGear > ECU.AMTCurrentGear | VERIFY has_changed(ECU.AMTCurrentGear, 1500, 1, rising) |
+| 6 | #Prerequisite<br>ECU.AMTSelectedGear < ECU.AMTCurrentGear | VERIFY has_changed(ECU.AMTCurrentGear, 1500, 1, falling) |
+| 7 | SET VEH.AccelPedal = OFF<br>SET VEH.ServiceBrake = ON<br>SET VEH.PRNDL = Reverse (-1)<br>VERIFY EXPECTED RESULTS<br><br>#Summary<br>1. Release accelerator pedal.<br>2. Bring vehicle to a stop and select Reverse Mode. Confirm Reverse is accepted. | VERIFY ECU.OprFootOnAccelPedal = 0<br>VERIFY J1939.ParkingBrakeSwitch = ParkingBrakeSet<br>VERIFY ECU.OprFootOnBrakePedal = 1 |
+| 8 | SET VEH.AccelPedal = OFF<br>SET VEH.ServiceBrake = ON<br>SET VEH.PRNDL = Neutral (0)<br>SET VEH.ParkingBrake = ON<br>VERIFY EXPECTED RESULTS<br><br>#Summary<br>1. Release accelerator pedal.<br>2. Bring vehicle to a stop and select Neutral Mode. Confirm Neutral is accepted.<br>3. Apply parking brake. | . |
+| 9 | Stop recording and save data file | . |
+| 10 | SET VEH.Engine = OFF<br>SET TE.Ignition = OFF<br>WAIT 30 (s)<br>VERIFY EXPECTED RESULTS<br><br>#Summary:<br>1. Set engine and ignition power OFF<br>2. Wait 30 seconds<br>3. Verify CAN bus no traffic to confirm that ECU is turned off | VERIFY ECU.XCP = no traffic |
+| 11 | SET TE.Battery = OFF<br><br>#Summary:<br>1. Set battery power OFF or start another test | . |
