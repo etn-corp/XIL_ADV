@@ -8,6 +8,7 @@ on:
       - "tools/xlsx_to_md.py"
       - "requirements.txt"
       - ".github/workflows/xlsx-test-cases-to-md.yml"
+
   workflow_dispatch:
 
 permissions:
@@ -37,21 +38,47 @@ jobs:
         run: python -m pip install -r requirements.txt
 
       - name: Generate Markdown test cases
-        run: >-
-          python tools/xlsx_to_md.py
-          "Manual Test Scripts"
-          --output "Manual Test Scripts Markdown"
+        run: |
+          python tools/xlsx_to_md.py \
+            "Manual Test Scripts" \
+            --output "Manual Test Scripts Markdown"
+
+      - name: Show generated files
+        shell: bash
+        run: |
+          echo "Generated Markdown files:"
+          find "Manual Test Scripts Markdown" \
+            -type f \
+            -name "*.md" \
+            -print \
+            | sort
+
+          echo
+          echo "Number of generated Markdown files:"
+          find "Manual Test Scripts Markdown" \
+            -type f \
+            -name "*.md" \
+            | wc -l
+
+          echo
+          echo "Git status:"
+          git status --short
 
       - name: Commit generated Markdown
         shell: bash
         run: |
-          if git diff --quiet -- "Manual Test Scripts Markdown"; then
+          git add -A -- "Manual Test Scripts Markdown"
+
+          if git diff --cached --quiet; then
             echo "No generated Markdown changes"
             exit 0
           fi
 
+          echo "Generated Markdown changes:"
+          git diff --cached --stat
+
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- "Manual Test Scripts Markdown"
+
           git commit -m "chore: update generated manual test cases"
           git push
