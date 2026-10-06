@@ -6,7 +6,7 @@ on:
       - "Manual Test Scripts/**/*.xlsx"
       - "Manual Test Scripts/**/*.xlsm"
       - "tools/xlsx_to_md.py"
-      - "requirements.txt"
+      - "tools/requirements.txt"
       - ".github/workflows/xlsx-test-cases-to-md.yml"
 
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: python -m pip install -r requirements.txt
+        run: python -m pip install -r tools/requirements.txt
 
       - name: Generate Markdown test cases
         run: |
